@@ -1,0 +1,6 @@
+{
+  "UserId": "登入身分證字號",
+  "Password": "登入密碼",
+  "eKey": "憑證路徑",
+  "eKeyPassword": "憑證密碼"
+}
