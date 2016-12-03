@@ -21,6 +21,6 @@ def step_impl(context, msg):
     assert_that(msg, equal_to(context.api.status))
 
 
-@then("可以得到設定檔的{msg}")
+@then('可以得到T4的"{msg}"')
 def step_impl(context, msg):
     assert_that(msg, equal_to(context.api.server_ip))

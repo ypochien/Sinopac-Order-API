@@ -20,7 +20,10 @@ class OrderAPI(object):
 
     @property
     def server_ip(self):
-        return str(pyT4.show_ip(), 'cp950')
+        ip_port = str(pyT4.show_ip(), 'cp950')
+        ip = ip_port.split('\n')[0].split(':')[1].strip()
+        port = ip_port.split('\n')[1].split(':')[1].strip()
+        return '{}:{}'.format(ip, port)
 
     @status.setter
     def status(self, value):
