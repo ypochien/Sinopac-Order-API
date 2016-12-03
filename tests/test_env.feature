@@ -4,6 +4,11 @@ Feature: 確保下單API可以用
 
 
   Scenario: 正常登入
-    Given OrderAPI設定檔-"OrderAPI.json"
+    Given OrderAPI設定檔-"OrderAPI/OrderAPI.json"
     When 我們建立OrderAPI
-    Then 會收到正常登入的訊息
+    Then 會收到初始化成功的訊息
+
+  Scenario: 正常登入
+    Given OrderAPI設定檔-"OrderAPI/OrderAPI.json"
+    When 我們建立OrderAPI
+    Then 可以得到設定檔的IP address : eleader.sinotrade.com.tw\nport : 443
