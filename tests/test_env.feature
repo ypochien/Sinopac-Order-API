@@ -1,5 +1,5 @@
 # Created by ypochien at 2016/12/2
-Feature: 非交易面的操作
+Feature: OrderAPI操作
   As a 下單API
   I want 執行基本操作
   So that 下單API是可以用的
@@ -14,4 +14,10 @@ Feature: 非交易面的操作
 
   Scenario: 列出可交易帳號
     When 顯示交易帳號
-    Then 會得到2個交易帳號
+    Then 會得到3個交易帳號
+
+
+  Scenario: 建立委託單
+    Given 建立委託單2330股票1張180.5元
+    When 執行下單委託
+    Then 我們會得到此筆委託單的委託回報
