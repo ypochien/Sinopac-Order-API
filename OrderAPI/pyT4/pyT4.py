@@ -1,10 +1,12 @@
 # coding=utf-8
 # __author__ == ypochien at gmail.com
 import json
+import os
 from ctypes import *
 from ctypes.wintypes import *
 
-api = windll.LoadLibrary("t4.dll")
+t4_dir = os.path.dirname(__file__)
+api = windll.LoadLibrary(t4_dir + "/t4.dll")
 
 # API Part i.
 init_t4 = api.init_t4
@@ -170,7 +172,7 @@ do_register.argtypes = [c_int]
 
 def decorate_to_utf8(func):
     """只要參數是str就要to cp950給t4.dll
-    只要回傳值是bytes"""
+    只要回傳值是bytes就要to utf8給 Api caller"""
 
     def func_wrapper(*args):
         new_args = list(args)
@@ -382,6 +384,7 @@ class T4(object):
     @decorate_to_utf8
     def log_out(cls, *args):
         return log_out(*args)
+
 
 if __name__ == '__main__':
     with open('../OrderAPI.json') as fd_json:
