@@ -22,13 +22,10 @@ class Account(object):
         self.account = acc.split('-')[1].strip()
         self.name = acc.split('-')[2].strip()
 
-    def __str__(self):
-        return '{}-{}{}-{}'.format(ACCOUNT_TYPE[self.type], self.branch, self.account, self.name)
-
 
 class OrderAPI(object):
-    @classmethod
-    def make_stock_orders(cls, stock, qty, price):
+    @staticmethod
+    def make_stock_orders(stock, qty, price):
         res = {
             'stock': stock,
             'price': str(price),
@@ -40,11 +37,11 @@ class OrderAPI(object):
             bs = 'S'
         res['bs'] = bs
         res['qty'] = str(abs(qty))
-        res['type'] = '00'
+        res['ord_type'] = '00'
         return res
 
-    @classmethod
-    def accounts(cls):
+    @staticmethod
+    def accounts():
         accounts = T4.show_list2()
         accounts = [acc for acc in accounts.split('\n') if len(acc)]
         for acc in accounts:
@@ -72,10 +69,6 @@ class OrderAPI(object):
     def status(self):
         return self._status
 
-    @status.setter
-    def status(self, value):
-        self.status = value
-
     @property
     def server_ip(self):
         ip_port = T4.show_ip()
@@ -83,27 +76,28 @@ class OrderAPI(object):
         port = ip_port.split('\n')[1].split(':')[1].strip()
         return '{}:{}'.format(ip, port)
 
-    def placing_order(self, acc, orders):
-        """buy_or_sell: "B"=買, "S"=賣, "F"=先賣
-            branch: 證券分公司代號
-            account: 證券帳戶
-            stock_id: 股票代碼
-            ord_type: 交易類別
-             "P0"=定盤現股, "P3"=定盤融資, "P4"=定盤融券
-             "00"=整股現股, "03"=整股融資, "04"=整股融券
-             "20"=零股
-            price: 價格 6 位數 (定盤、漲跌停時，此參數忽略不作用，會帶 0.0)
-            amount: 張數 3 位數 (零股則為股數)
-            price_type: " "=限價, "2"=漲停價, "3"=跌停價
-        """
-        order_args = []
-        order_args.append(orders['bs'])
+    @staticmethod
+    def placing_order(acc, dt_orders):
+        order_args = list()
+        order_args.append(dt_orders['bs'])
         order_args.append(acc.branch)
         order_args.append(acc.account)
-        order_args.append(orders['stock'])
-        order_args.append(orders['type'])
-        order_args.append(orders['price'])
-        order_args.append(orders['qty'])
-        order_args.append(orders['price_type'])
-        msg = T4.stock_order(*order_args)
-        return msg
+        order_args.append(dt_orders['stock'])
+        order_args.append(dt_orders['ord_type'])
+        order_args.append(dt_orders['price'])
+        order_args.append(dt_orders['qty'])
+        order_args.append(dt_orders['price_type'])
+        return T4.stock_order(*order_args)
+
+    @staticmethod
+    def placing_cancel_order(dt_cancel):
+        lst_cancel_items = list()
+        lst_cancel_items.append(dt_cancel['bs'])
+        lst_cancel_items.append(dt_cancel['branch'])
+        lst_cancel_items.append(dt_cancel['account'])
+        lst_cancel_items.append(dt_cancel['stock'])
+        lst_cancel_items.append(dt_cancel['ord_type'])
+        lst_cancel_items.append(dt_cancel['ord_seq'])
+        lst_cancel_items.append(dt_cancel['ord_no'])
+        lst_cancel_items.append(dt_cancel['pre_order'])
+        return T4.stock_cancel(*lst_cancel_items)

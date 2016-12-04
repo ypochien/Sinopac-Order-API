@@ -191,6 +191,19 @@ def decorate_to_utf8(func):
     return func_wrapper
 
 
+def convert_stock_bytes_to_dict(stock_order_res_bytes):
+    """委託回報為bytes。所以先轉為有結構的NameTuple，但每個item得從bytes to utf8"""
+    stock_record_field = 'trade_type, Account,stock_id, ord_price, ord_qty, ord_seq, ord_date, effective_date, ord_time,' \
+                         'ord_no,ord_soruce,org_ord_seq,ord_bs,ord_type,market_id,price_type,ord_status,Msg'
+    StockOrderRecord = namedtuple('StockOrderRecord', stock_record_field)
+    stock_order_res_format = '2s15s6s6s3s6s8s8s6s5s3s6s1s2s1s1s2s60s'
+    if len(stock_order_res_bytes) != struct.calcsize(stock_order_res_format):
+        return stock_order_res_bytes
+    stock_order_res = StockOrderRecord._make(struct.unpack_from(stock_order_res_format, stock_order_res_bytes))
+    stock_order_res_lst = [str(item, 'cp950') for item in stock_order_res]
+    return StockOrderRecord(*stock_order_res_lst)._asdict()
+
+
 class T4(object):
     @classmethod
     @decorate_to_utf8
@@ -245,20 +258,12 @@ class T4(object):
     @classmethod
     @decorate_to_utf8
     def stock_order(cls, *args):
-        """委託回報為bytes。所以先轉為有結構的NameTuple，但每個item得從bytes to utf8"""
-        stock_order_res = stock_order(*args)
-        stock_record_field = 'trade_type, Account,stock_id, ord_price, ord_qty, ord_seq, ord_date, effective_date, ord_time,' \
-                             'ord_no,ord_soruce,org_ord_seq,ord_bs,ord_type1,ord_type2,market_id,price_type,ord_status,Msg'
-        StockOrderRecord = namedtuple('StockOrderRecord', stock_record_field)
-        StockOrderRecordfmt = '2s15s6s6s3s6s8s8s6s5s3s6s1s1s1s1s1s2s60s'
-        stock_order_res = StockOrderRecord._make(struct.unpack_from(StockOrderRecordfmt, stock_order_res))
-        new_vaule = [str(item, 'cp950') for item in stock_order_res]
-        return StockOrderRecord(*new_vaule)
+        return convert_stock_bytes_to_dict(stock_order(*args))
 
     @classmethod
     @decorate_to_utf8
     def stock_cancel(cls, *args):
-        return stock_cancel(*args)
+        return convert_stock_bytes_to_dict(stock_cancel(*args))
 
     @classmethod
     @decorate_to_utf8

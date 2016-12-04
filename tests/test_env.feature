@@ -17,7 +17,12 @@ Feature: OrderAPI操作
     Then 會得到3個交易帳號
 
 
-  Scenario: 建立委託單
-    Given 建立委託單2330股票1張180.5元
+  Scenario Outline: 建立委託單
+    Given 建立委託單"<stock>"股票"<qty>"張"<price>"元
     When 執行下單委託
     Then 我們會得到此筆委託單的委託回報
+    And 將刪單此筆委託
+    Examples: Stock_Order
+      | stock | qty | price |
+      | 2890  | 1   | 8.8   |
+      | 2801  | -2  | 16.0  |
