@@ -1,10 +1,10 @@
 # coding=utf-8
 # __author__ == ypochien at gmail.com
-
+import json
 from ctypes import *
 from ctypes.wintypes import *
 
-api = windll.LoadLibrary("OrderAPI/pyT4/t4.dll")
+api = windll.LoadLibrary("t4.dll")
 
 # API Part i.
 init_t4 = api.init_t4
@@ -167,7 +167,229 @@ do_register = api.do_register
 do_register.restype = c_int
 do_register.argtypes = [c_int]
 
+
+def decorate_to_utf8(func):
+    """只要參數是str就要to cp950給t4.dll
+    只要回傳值是bytes"""
+
+    def func_wrapper(*args):
+        new_args = list(args)
+        for idx, arg in enumerate(args):
+            if isinstance(arg, str):
+                new_args[idx] = args[idx].encode('utf-8')
+
+        res = func(*new_args)
+        if isinstance(res, bytes):
+            return str(res, 'cp950')
+        else:
+            return res
+
+    return func_wrapper
+
+
+class T4(object):
+    @classmethod
+    @decorate_to_utf8
+    def init_t4(cls, *args):
+        return init_t4(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def show_ip(cls, *args):
+        return show_ip(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def show_version(cls):
+        return show_version()
+
+    @classmethod
+    @decorate_to_utf8
+    def do_register(cls, reg):
+        return do_register(reg)
+
+    @classmethod
+    @decorate_to_utf8
+    def add_acc_ca(cls, branch, account, account_id, ca_path, ca_password):
+        return add_acc_ca(branch, account, account_id, ca_path, ca_password)
+
+    @classmethod
+    @decorate_to_utf8
+    def show_list(cls):
+        return show_list()
+
+    @classmethod
+    @decorate_to_utf8
+    def show_list2(cls):
+        return show_list2()
+
+    @classmethod
+    @decorate_to_utf8
+    def init_t4(cls, *args):
+        return init_t4(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def add_acc_ca(cls, *args):
+        return add_acc_ca(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def verify_ca_pass(cls, *args):
+        return verify_ca_pass(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def stock_order(cls, *args):
+        return stock_order(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def stock_cancel(cls, *args):
+        return stock_cancel(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def future_order(cls, *args):
+        return future_order(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def future_cancel(cls, *args):
+        return future_cancel(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def future_change(cls, *args):
+        return future_change(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def option_order(cls, *args):
+        return option_order(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def option_cancel(cls, *args):
+        return option_cancel(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def ffuture_order(cls, *args):
+        return ffuture_order(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def ffuture_cancel(cls, *args):
+        return ffuture_cancel(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def get_response(cls, *args):
+        return get_response(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def ff_get_response(cls, *args):
+        return ff_get_response(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def fo_unsettled_qty(cls, *args):
+        return fo_unsettled_qty(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def fo_order_qry(cls, *args):
+        return fo_order_qry(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def fo_order_qry2(cls, *args):
+        return fo_order_qry2(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def ff_get_info(cls, *args):
+        return ff_get_info(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def stock_balance_qry(cls, *args):
+        return stock_balance_qry(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def stock_balance_sum(cls, *args):
+        return stock_balance_sum(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def stock_balance_detail(cls, *args):
+        return stock_balance_detail(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def ff_get_positions(cls, *args):
+        return ff_get_positions(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def ff_order_qry(cls, *args):
+        return ff_order_qry(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def fo_get_day_info(cls, *args):
+        return fo_get_day_info(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def fo_get_hist_info(cls, *args):
+        return fo_get_hist_info(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def get_response_log(cls, *args):
+        return get_response_log(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def check_response_buffer(cls, *args):
+        return check_response_buffer(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def timer_response_log(cls, *args):
+        return timer_response_log(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def get_response_evt(cls, *args):
+        return get_response_evt(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def fifo_response(cls, *args):
+        return fifo_response(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def change_echo(cls, *args):
+        return change_echo(*args)
+
+    @classmethod
+    @decorate_to_utf8
+    def log_out(cls, *args):
+        return log_out(*args)
+
 if __name__ == '__main__':
-    print(show_version())
-    print(show_ip())
-    print(show_list())
+    with open('../OrderAPI.json') as fd_json:
+        UserInfo = json.load(fd_json)
+    msg = T4.init_t4(UserInfo['UserId'], UserInfo['Password'], '')
+    print(msg)
+    print(T4.show_version())
+    print(T4.show_ip())
+    print(T4.show_list())
+    print(T4.do_register(1))
+    print(T4.show_list2())
