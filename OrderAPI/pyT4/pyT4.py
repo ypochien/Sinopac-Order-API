@@ -193,8 +193,8 @@ def decorate_to_utf8(func):
 
 def convert_stock_bytes_to_dict(stock_order_res_bytes):
     """委託回報為bytes。所以先轉為有結構的NameTuple，但每個item得從bytes to utf8"""
-    stock_record_field = 'trade_type, Account,stock_id, ord_price, ord_qty, ord_seq, ord_date, effective_date, ord_time,' \
-                         'ord_no,ord_soruce,org_ord_seq,ord_bs,ord_type,market_id,price_type,ord_status,Msg'
+    stock_record_field = 'trade_type,account,code_id,ord_price,ord_qty,ord_seq,ord_date,effective_date,' \
+                         'ord_time,ord_no,ord_soruce,org_ord_seq,ord_bs,ord_type,market_id,price_type,ord_status,Msg'
     StockOrderRecord = namedtuple('StockOrderRecord', stock_record_field)
     stock_order_res_format = '2s15s6s6s3s6s8s8s6s5s3s6s1s2s1s1s2s60s'
     if len(stock_order_res_bytes) != struct.calcsize(stock_order_res_format):
@@ -202,6 +202,19 @@ def convert_stock_bytes_to_dict(stock_order_res_bytes):
     stock_order_res = StockOrderRecord._make(struct.unpack_from(stock_order_res_format, stock_order_res_bytes))
     stock_order_res_lst = [str(item, 'cp950') for item in stock_order_res]
     return StockOrderRecord(*stock_order_res_lst)._asdict()
+
+
+def convert_future_bytes_to_dict(future_order_res_bytes):
+    future_record_field = 'trade_type,account,market_id,code_id,f_callput,ord_bs,ord_price,price_type,ord_qty,' \
+                          'ord_no,ord_seq,ord_type,oct_type,f_mttype,f_composit,c_futopt,c_code,c_callput,' \
+                          'c_buysell,c_price,c_quantity,ord_date,preord_date,ord_time,type,err_code,msg'
+    FutureOrderRecord = namedtuple('FutureOrderRecord', future_record_field)
+    future_order_res_format = '2s15s1s10s1s1s12s3s4s6s6s3s1s1s2s1s10s1s1s12s4s8s8s6s1s4s60s'
+    if len(future_order_res_bytes) != struct.calcsize(future_order_res_format):
+        return future_order_res_bytes
+    future_order_res = FutureOrderRecord._make(struct.unpack_from(future_order_res_format, future_order_res_bytes))
+    future_order_res_lst = [str(item, 'cp950') for item in future_order_res]
+    return FutureOrderRecord(*future_order_res_lst)._asdict()
 
 
 class T4(object):
@@ -268,7 +281,7 @@ class T4(object):
     @classmethod
     @decorate_to_utf8
     def future_order(cls, *args):
-        return future_order(*args)
+        return convert_future_bytes_to_dict(future_order(*args))
 
     @classmethod
     @decorate_to_utf8

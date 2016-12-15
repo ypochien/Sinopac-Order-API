@@ -28,41 +28,75 @@ def step_impl(context):
 
 @then("會得到{nums:d}個交易帳號")
 def step_impl(context, nums):
+    for item in context.account_list.items():
+        print(item)
     assert_that(nums, equal_to(len(context.account_list['S'])))
 
 
 @given(u'建立委託單"{stock}"股票"{qty:n}"張"{price:f}"元')
 def step_impl(context, stock, qty, price):
-    context.stock = stock
+    context.code = stock
     context.qty = str(abs(qty))
     context.price = str(price)
     context.orders = context.api.make_stock_orders(stock, qty, price)
 
-
-@when("執行下單委託")
+@when("執行股票下單委託")
 def step_impl(context):
     acc = context.api.accounts['S'][0]
+    orders = context.orders
+    context.result = context.api.placing_order(acc, orders)
+
+@given('建立委託單"{future_id}"期貨"{qty:n}"口"{price:f}"點')
+def step_impl(context, future_id, qty, price):
+    context.code = future_id
+    context.qty = str(abs(qty))
+    context.price = str(price)
+    context.orders = context.api.make_future_orders(future_id, qty, price)
+
+@when("執行期貨下單委託")
+def step_impl(context):
+    acc = context.api.accounts['F'][0]
     orders = context.orders
     context.result = context.api.placing_order(acc, orders)
 
 
 @then("我們會得到此筆委託單的委託回報")
 def step_impl(context):
-    assert_that(context.stock, equal_to(context.result['stock_id'].strip()))
+    expected = context.code
+    if isinstance(context.result, str):
+        res = context.result
+    else:
+        res = context.result['code_id'].strip()
+    assert_that(expected, equal_to(res))
 
 
 @step("將刪單此筆委託")
 def step_impl(context):
-    cancel_items = (
-        ('bs', context.result['ord_bs']),
-        ('branch', context.result['Account'][1:5]),  # [S9A95   0483976]
-        ('account', context.result['Account'][8:15]),
-        ('stock', context.result['stock_id']),
-        ('ord_type', context.result['ord_type']),
-        ('ord_seq', context.result['ord_seq']),
-        ('ord_no', context.result['ord_no']),
-        ('pre_order', ' ' if context.result['ord_no'] == '00000' else 'N'))
-    cancel_stock_order = OrderedDict(cancel_items)
-    orders = context.api.placing_cancel_order(cancel_stock_order)
+    if context.result['account'][0] == 'S':
+        cancel_items = (
+            ('market_id', 'S'),
+            ('bs', context.result['ord_bs']),
+            ('branch', context.result['account'][1:5]),  # [S9A95   0483976]
+            ('account', context.result['account'][8:15]),
+            ('code_id', context.result['code_id']),
+            ('ord_type', context.result['ord_type']),
+            ('ord_seq', context.result['ord_seq']),
+            ('ord_no', context.result['ord_no']),
+            ('pre_order', ' ' if context.result['ord_no'] == '00000' else 'N'))
+        cancel_order = OrderedDict(cancel_items)
+    elif context.result['account'][0] == 'F':
+        print('[{}]'.format(context.result['code_id']))
+        cancel_items = (
+            ('market_id', 'F'),
+            ('branch', context.result['account'][1:8]),  # [FF0020009114728]
+            ('account', context.result['account'][8:15]),
+            ('code_id', context.result['code_id'].strip()),
+            ('ord_seq', context.result['ord_seq']),
+            ('ord_no', context.result['ord_no']),
+            ('oct_type', context.result['oct_type']),
+            ('pre_order', ' ' if context.result['ord_no'] == '00000' else 'N'))
+        cancel_order = OrderedDict(cancel_items)
+
+    orders = context.api.placing_cancel_order(cancel_order)
     print(orders)
-    assert_that(0, equal_to(0))
+    assert_that(1, equal_to(0))

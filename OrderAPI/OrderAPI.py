@@ -22,29 +22,53 @@ class Account(object):
         self.account = acc.split('-')[1].strip()
         self.name = acc.split('-')[2].strip()
 
+    def __str__(self):
+        return '{}{}{}{}'.format(self.name, self.type, self.branch, self.account)
+
 
 class OrderAPI(object):
     @staticmethod
     def make_stock_orders(stock, qty, price):
         res = {
-            'stock': stock,
+            'code_id': stock,
             'price': str(price),
-            'price_type': ' '
+            'price_type': ' ',
+            'qty': str(abs(qty)),
+            'ord_type': '00',
+            'bs': ' '
         }
+        bs = ' '
         if qty > 0:
             bs = 'B'
-        else:
+        elif qty < 0:
             bs = 'S'
         res['bs'] = bs
-        res['qty'] = str(abs(qty))
-        res['ord_type'] = '00'
+        return res
+
+    @staticmethod
+    def make_future_orders(future_id, qty, price):
+        res = {
+            'code_id': future_id,
+            'price': str(price),
+            'price_type': 'LMT',
+            'ord_type': 'ROD',
+            'oct_type': ' ',
+            'bs': ' ',
+            'qty': str(abs(qty))
+        }
+        bs = ' '
+        if qty > 0:
+            bs = 'B'
+        elif qty < 0:
+            bs = 'S'
+        res['bs'] = bs
         return res
 
     @staticmethod
     def accounts():
-        accounts = T4.show_list2()
-        accounts = [acc for acc in accounts.split('\n') if len(acc)]
-        for acc in accounts:
+        accounts_raw = T4.show_list2()
+        accounts_raw = [acc for acc in accounts_raw.split('\n') if len(acc)]
+        for acc in accounts_raw:
             yield Account(acc)
 
     def __init__(self, config_file='OrderAPI.json'):
@@ -78,11 +102,18 @@ class OrderAPI(object):
 
     @staticmethod
     def placing_order(acc, dt_orders):
+        if acc.type == 'S':
+            return OrderAPI.placing_stock_order(acc, dt_orders)
+        elif acc.type == 'F':
+            return OrderAPI.placing_future_order(acc, dt_orders)
+
+    @staticmethod
+    def placing_stock_order(acc, dt_orders):
         order_args = list()
         order_args.append(dt_orders['bs'])
         order_args.append(acc.branch)
         order_args.append(acc.account)
-        order_args.append(dt_orders['stock'])
+        order_args.append(dt_orders['code_id'])
         order_args.append(dt_orders['ord_type'])
         order_args.append(dt_orders['price'])
         order_args.append(dt_orders['qty'])
@@ -90,14 +121,38 @@ class OrderAPI(object):
         return T4.stock_order(*order_args)
 
     @staticmethod
+    def placing_future_order(acc, dt_orders):
+        order_args = list()
+        order_args.append(dt_orders['bs'])
+        order_args.append(acc.branch)
+        order_args.append(acc.account)
+        order_args.append(dt_orders['code_id'])
+        order_args.append(dt_orders['price'])
+        order_args.append(dt_orders['qty'])
+        order_args.append(dt_orders['price_type'])
+        order_args.append(dt_orders['ord_type'])
+        order_args.append(dt_orders['oct_type'])
+        return T4.future_order(*order_args)
+
+    @staticmethod
     def placing_cancel_order(dt_cancel):
         lst_cancel_items = list()
-        lst_cancel_items.append(dt_cancel['bs'])
-        lst_cancel_items.append(dt_cancel['branch'])
-        lst_cancel_items.append(dt_cancel['account'])
-        lst_cancel_items.append(dt_cancel['stock'])
-        lst_cancel_items.append(dt_cancel['ord_type'])
-        lst_cancel_items.append(dt_cancel['ord_seq'])
-        lst_cancel_items.append(dt_cancel['ord_no'])
-        lst_cancel_items.append(dt_cancel['pre_order'])
-        return T4.stock_cancel(*lst_cancel_items)
+        if dt_cancel['market_id'] == 'S':
+            lst_cancel_items.append(dt_cancel['bs'])
+            lst_cancel_items.append(dt_cancel['branch'])
+            lst_cancel_items.append(dt_cancel['account'])
+            lst_cancel_items.append(dt_cancel['code_id'])
+            lst_cancel_items.append(dt_cancel['ord_type'])
+            lst_cancel_items.append(dt_cancel['ord_seq'])
+            lst_cancel_items.append(dt_cancel['ord_no'])
+            lst_cancel_items.append(dt_cancel['pre_order'])
+            return T4.stock_cancel(*lst_cancel_items)
+        if dt_cancel['market_id'] == 'F':
+            lst_cancel_items.append(dt_cancel['branch'])
+            lst_cancel_items.append(dt_cancel['account'])
+            lst_cancel_items.append(dt_cancel['code_id'])
+            lst_cancel_items.append(dt_cancel['ord_seq'])
+            lst_cancel_items.append(dt_cancel['ord_no'])
+            lst_cancel_items.append(dt_cancel['oct_type'])
+            lst_cancel_items.append(dt_cancel['pre_order'])
+            return T4.future_cancel(*lst_cancel_items)
