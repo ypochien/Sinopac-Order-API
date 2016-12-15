@@ -1,7 +1,8 @@
 from collections import OrderedDict
 
+import collections
 from behave import *
-from hamcrest import assert_that, equal_to, is_not
+from hamcrest import assert_that, equal_to, is_not, instance_of
 
 from OrderAPI import OrderAPI
 
@@ -40,11 +41,13 @@ def step_impl(context, stock, qty, price):
     context.price = str(price)
     context.orders = context.api.make_stock_orders(stock, qty, price)
 
+
 @when("執行股票下單委託")
 def step_impl(context):
     acc = context.api.accounts['S'][0]
     orders = context.orders
     context.result = context.api.placing_order(acc, orders)
+
 
 @given('建立委託單"{future_id}"期貨"{qty:n}"口"{price:f}"點')
 def step_impl(context, future_id, qty, price):
@@ -52,6 +55,7 @@ def step_impl(context, future_id, qty, price):
     context.qty = str(abs(qty))
     context.price = str(price)
     context.orders = context.api.make_future_orders(future_id, qty, price)
+
 
 @when("執行期貨下單委託")
 def step_impl(context):
@@ -85,7 +89,6 @@ def step_impl(context):
             ('pre_order', ' ' if context.result['ord_no'] == '00000' else 'N'))
         cancel_order = OrderedDict(cancel_items)
     elif context.result['account'][0] == 'F':
-        print('[{}]'.format(context.result['code_id']))
         cancel_items = (
             ('market_id', 'F'),
             ('branch', context.result['account'][1:8]),  # [FF0020009114728]
@@ -96,7 +99,6 @@ def step_impl(context):
             ('oct_type', context.result['oct_type']),
             ('pre_order', ' ' if context.result['ord_no'] == '00000' else 'N'))
         cancel_order = OrderedDict(cancel_items)
-
     orders = context.api.placing_cancel_order(cancel_order)
-    print(orders)
-    assert_that(1, equal_to(0))
+    assert_that(orders, is_not(instance_of(str)), '回傳型態錯誤，錯誤訊息[{}]'.format(orders))
+    assert_that(context.result['code_id'], equal_to(orders['code_id']))
