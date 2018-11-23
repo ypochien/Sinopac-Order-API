@@ -1,3 +1,7 @@
+# 請使用真正的 Python 版本API https://github.com/Sinotrade/Shioaji 
+
+# 此專案 停止開發
+
 # Sinopac-Order-API ![永豐金證券LOGO](http://www.sinotrade.com.tw/Images/logo.png)
 
 
